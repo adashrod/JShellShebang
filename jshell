@@ -11,36 +11,29 @@
 jshellExec=/usr/lib/jvm/java-9-oracle/bin/jshell
 
 if [[ "$#" = "0" ]]; then
-	${jshellExec}
+    ${jshellExec}
 else
-	tempScript=`mktemp`
-	argsStmt="String[] args = {"
-	scriptArgs=(${@:2})
-	length=${#scriptArgs[@]}
-	index=0
+    tempScript=$(mktemp)
+    argsStmt="String[] args = {"
 
-	for arg in ${scriptArgs[@]}; do
-		index=$((index + 1)) # treating array index as 1-indexed for easy comparison
-		escapedArg=$(echo ${arg//\\/\\\\}) # replace a literal backslash with 2 literal backslashes, which will be an
+    for arg in "${@:2}"; do
+        escapedArg=$(echo ${arg//\\/\\\\}) # replace a literal backslash with 2 literal backslashes, which will be an
                                            # escaped backslash in the generated source
         escapedArg=$(echo ${escapedArg//\"/\\\"}) # replace a literal quote with 2 chars: a backslash and a quote, which
                                                   # form an escaped quote in the generated source
-		argsStmt="${argsStmt}\"${escapedArg}\""
-		if [[ "${index}" -ne "${length}" ]]; then
-			argsStmt="${argsStmt}, "
-		fi
-	done
-	argsStmt="${argsStmt}};"
-	echo ${argsStmt} >> ${tempScript}
+        argsStmt="${argsStmt}\"${escapedArg}\", "
+    done
+    argsStmt="${argsStmt}};"
+    echo ${argsStmt} >> ${tempScript}
 
-	scriptLineComment="^\s*#"
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		if ! [[ "${line}" =~ ${scriptLineComment} ]]; then
-			echo "${line}" >> ${tempScript}
-		fi
-	done < "$1"
-	# jshell stays open when given a script file to execute
-	echo "/exit" >> ${tempScript}
+    scriptLineComment="^\s*#"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if ! [[ "${line}" =~ ${scriptLineComment} ]]; then
+            echo "${line}" >> ${tempScript}
+        fi
+    done < "$1"
+    # jshell stays open when given a script file to execute
+    echo "/exit" >> ${tempScript}
 
-	${jshellExec} ${tempScript}
+    ${jshellExec} ${tempScript}
 fi
