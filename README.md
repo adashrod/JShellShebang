@@ -3,7 +3,7 @@
 
 JShell is a Java [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) (Read-Eval-Print-Loop) that ships with the early access version of JDK 9. Like other REPLs (e.g. node in NodeJS, irb in Ruby) it can be run interactively or given a script file and it will execute the code in the script.
 
-Unfortunately, both invoking ```${JAVA_HOME}/java-9-oracle/bin/jshell myScript.jsh``` and putting the path to the jshell binary in the shebang line of ```myScript.jsh``` and invoking ```./myScript.jsh``` have some drawbacks:
+Unfortunately, both invoking ```${JAVA_HOME}/bin/jshell myScript.jsh``` and putting the path to the jshell binary in the shebang line of ```myScript.jsh``` and invoking ```./myScript.jsh``` have some drawbacks:
 - jshell tries to parse the shebang line and throws errors at line 1: ```illegal character: '#'``` and ```illegal start of expression```
 - jshell can't receive arguments and make them available to the script
 - after running the script, jshell stays open and must manually be exited by the user
