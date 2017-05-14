@@ -14,10 +14,10 @@ This utility gets around those limitations by providing a script to be used as t
 - automatically exits at the end of the script, like other types of shell scripts
 
 # Installation
-Put the jshell shebang script file ```jshell``` from this repo in a directory on the system PATH, such as ```/usr/bin```, and make sure that it's executable (```chmod +x```).
+Put the JShell Shebang script file ```jshell``` from this repo in a directory on the system PATH, such as ```/usr/bin```, and make sure that it's executable (```chmod +x```).
 
 # Usage:
-Create a shell script with some Java code in it, and add a shebang line to the top with the path to the jshell shebang script (```#!/usr/bin/jshell``` if you followed the example in the previous step).
+Create a shell script with some Java code in it, and add a shebang line to the top with the path to the JShell Shebang script (```#!/usr/bin/jshell``` if you followed the example in the previous step).
 
 You can now execute Java shell scripts as you would other types of shell scripts.
 
@@ -52,9 +52,9 @@ I didn't get any arguments
 exiting now
 $
 $
-$ ./test.jsh first second
+$ ./test.jsh first second "a \"third\" arg"
 I'm a Java shell script
-I got 2 arguments: [first, second]
+I got 3 arguments: [first, second, a "third" arg]
 exiting now
 $
 ```
