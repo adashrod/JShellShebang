@@ -58,3 +58,7 @@ I got 2 arguments: [first, second]
 exiting now
 $
 ```
+
+# Notes
+- so far, it's only been tested on Ubuntu
+- the path to JDK 9 jshell is hard-coded in the script as "/usr/lib/jvm/java-9-oracle/bin/jshell"
