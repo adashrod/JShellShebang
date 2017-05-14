@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# this script can be used in a shebang to execute shell scripts using JDK 9's jshell
+# it has three main differences from directly invoking the jshell executable with a shell script
+# 1: this filters out lines starting with the "#" character, which prevents the shebang line from throwing an error in
+#    jshell
+# 2: this passes arguments into the jshell environment by prepending a variable definition statement to the script
+#    being executed by jshell. Arguments are available to the script as the variable "args", whose type is String[]
+# 3: jshell will exit after running the script rather than staying open
+
+jshellExec=/usr/lib/jvm/java-9-oracle/bin/jshell
+
+if [[ "$#" = "0" ]]; then
+	${jshellExec}
+else
+	tempScript=`mktemp`
+	argsStmt="String[] args = {"
+	scriptArgs=(${@:2})
+	length=${#scriptArgs[@]}
+	index=0
+
+	for arg in ${scriptArgs[@]}; do
+		index=$((index + 1)) # treating array index as 1-indexed for easy comparison
+		escapedArg=$(echo ${arg//\\/\\\\}) # replace a literal backslash with 2 literal backslashes, which will be an
+                                           # escaped backslash in the generated source
+        escapedArg=$(echo ${escapedArg//\"/\\\"}) # replace a literal quote with 2 chars: a backslash and a quote, which
+                                                  # form an escaped quote in the generated source
+		argsStmt="${argsStmt}\"${escapedArg}\""
+		if [[ "${index}" -ne "${length}" ]]; then
+			argsStmt="${argsStmt}, "
+		fi
+	done
+	argsStmt="${argsStmt}};"
+	echo ${argsStmt} >> ${tempScript}
+
+	scriptLineComment="^\s*#"
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		if ! [[ "${line}" =~ ${scriptLineComment} ]]; then
+			echo "${line}" >> ${tempScript}
+		fi
+	done < "$1"
+	# jshell stays open when given a script file to execute
+	echo "/exit" >> ${tempScript}
+
+	${jshellExec} ${tempScript}
+fi
