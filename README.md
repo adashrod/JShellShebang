@@ -31,7 +31,7 @@ You can now execute Java shell scripts as you would other types of shell scripts
 
 # Complete example
 
-```
+```bash
 # clone repo and cd into it
 $ sudo cp jshell /usr/bin/jshell
 # create a script in a file called test.jsh
@@ -75,7 +75,7 @@ pass options to the jshell binary, you have to invoke JShell Shebang, passing it
 (```./myScript```).
 
 #### Examples
-```
+```bash
 $ ls
 commons-math3-3.6.1.jar  withoutCp.jsh  withCp.jsh
 $ cat withoutCp.jsh
