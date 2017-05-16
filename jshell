@@ -10,13 +10,33 @@
 
 jshellExec=/usr/lib/jvm/java-9-oracle/bin/jshell
 
-if [[ "$#" = "0" ]]; then
-    ${jshellExec}
-else
+optionPattern="-.*"
+# note: per `jshell --help` "execution" and "add-exports" might be changed in a future release
+argsWithOperandPattern="--(class-path|module-path|add-modules|startup|feedback|execution|add-exports|J|R|C)"
+index=0
+jshellArgsStr=""
+# iterate over all args (jshell options, script name, script args) and find where the script name is
+for arg in "${@:1}"; do
+    index=$((index+1))
+    if [[ -n "${expectArgNext}" ]]; then
+        unset expectArgNext
+        jshellArgsStr="${jshellArgsStr} ${arg}"
+    elif [[ "${arg}" =~ ${optionPattern} ]]; then
+        if [[ "${arg}" =~ ${argsWithOperandPattern} ]]; then
+            expectArgNext=1
+        fi
+        jshellArgsStr="${jshellArgsStr} ${arg}"
+    else
+        scriptNameIndex=${index}
+        break
+    fi
+done
+
+if [[ -n "${scriptNameIndex}" ]]; then
     tempScript=$(mktemp)
     argsStmt="String[] args = {"
-
-    for arg in "${@:2}"; do
+    for i in $(seq $((scriptNameIndex+1)) $#); do
+        arg="${!i}"
         escapedArg=$(echo ${arg//\\/\\\\}) # replace a literal backslash with 2 literal backslashes, which will be an
                                            # escaped backslash in the generated source
         escapedArg=$(echo ${escapedArg//\"/\\\"}) # replace a literal quote with 2 chars: a backslash and a quote, which
@@ -24,16 +44,18 @@ else
         argsStmt="${argsStmt}\"${escapedArg}\", "
     done
     argsStmt="${argsStmt}};"
-    echo ${argsStmt} >> ${tempScript}
+    echo "${argsStmt}" >> "${tempScript}"
 
     scriptLineComment="^\s*#"
     while IFS= read -r line || [[ -n "$line" ]]; do
         if ! [[ "${line}" =~ ${scriptLineComment} ]]; then
-            echo "${line}" >> ${tempScript}
+            echo "${line}" >> "${tempScript}"
         fi
-    done < "$1"
+    done < "${!scriptNameIndex}"
     # jshell stays open when given a script file to execute
-    echo "/exit" >> ${tempScript}
+    echo "/exit" >> "${tempScript}"
 
-    ${jshellExec} ${tempScript}
+    ${jshellExec} ${jshellArgsStr} "${tempScript}"
+else
+    ${jshellExec} ${jshellArgsStr}
 fi

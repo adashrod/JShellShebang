@@ -1,23 +1,31 @@
 # JShellShebang
-### JShell Shebang is a bash script to facilitate specifying jshell (Java 9 REPL) in the shebang of shell scripts
+#### JShell Shebang is a bash script to facilitate specifying jshell (Java 9 REPL) in the shebang of shell scripts
 
-JShell is a Java [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) (Read-Eval-Print-Loop) that ships with the early access version of JDK 9. Like other REPLs (e.g. node in NodeJS, irb in Ruby) it can be run interactively or given a script file and it will execute the code in the script.
+JShell is a Java [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) (Read-Eval-Print-Loop) that 
+ships with the early access version of JDK 9. Like other REPLs (e.g. node in NodeJS, irb in Ruby) it can be run 
+interactively or given a script file and it will execute the code in the script.
 
-Unfortunately, both invoking ```${JAVA_HOME}/bin/jshell myScript.jsh``` and putting the path to the jshell binary in the shebang line of ```myScript.jsh``` and invoking ```./myScript.jsh``` have some drawbacks:
-- jshell tries to parse the shebang line and throws errors at line 1: ```illegal character: '#'``` and ```illegal start of expression```
+Unfortunately, both invoking ```${JAVA_HOME}/bin/jshell myScript.jsh``` and putting the path to the jshell binary in the 
+shebang line of ```myScript.jsh``` and invoking ```./myScript.jsh``` have some drawbacks:
+- jshell tries to parse the shebang line and throws errors at line 1: ```illegal character: '#'``` and ```illegal start 
+of expression```
 - jshell can't receive arguments and make them available to the script
 - after running the script, jshell stays open and must manually be exited by the user
 
-This utility gets around those limitations by providing a script to be used as the interpreter directive in Java shell scripts in place of jshell. It does the following:
+This utility gets around those limitations by providing a script to be used as the interpreter directive in Java shell 
+scripts in place of jshell. It does the following:
 - prevents parsing errors caused by the shebang line
 - makes command-line arguments available to the script in a variable called ```args```, type: ```String[]```
-- automatically exits at the end of the script, like other types of shell scripts
+- automatically exits at the end of the script, like other types of shell scripts (jshell might still stay open under 
+certain conditions, e.g. OutOfMemoryError)
 
 # Installation
-Put the JShell Shebang script file ```jshell``` from this repo in a directory on the system PATH, such as ```/usr/bin```, and make sure that it's executable (```chmod +x```).
+Put the JShell Shebang script file ```jshell``` from this repo in a directory on the system PATH, such as ```/usr/bin```, 
+and make sure that it's executable (```chmod +x```).
 
 # Usage:
-Create a shell script with some Java code in it, and add a shebang line to the top with the path to the JShell Shebang script (```#!/usr/bin/jshell``` if you followed the example in the previous step).
+Create a shell script with some Java code in it, and add a shebang line to the top with the path to the JShell Shebang 
+script (```#!/usr/bin/jshell``` if you followed the example in the previous step).
 
 You can now execute Java shell scripts as you would other types of shell scripts.
 
@@ -59,6 +67,49 @@ exiting now
 $
 ```
 
+# Options to JShell
+
+The jshell binary can take options when started interactively or with a script (run ```jshell --help``` for info). To 
+pass options to the jshell binary, you have to invoke JShell Shebang, passing it options and a script 
+(```jshell --no-startup myScript```). You can't pass options to jshell by directly invoking an executable script 
+(```./myScript```).
+
+#### Examples
+```
+$ ls
+commons-math3-3.6.1.jar  withoutCp.jsh  withCp.jsh
+$ cat withoutCp.jsh
+#!/usr/bin/jshell
+
+# jar needs to be included in the classpath on the command line
+import org.apache.commons.math3.analysis.function.Add;
+
+Add a = new Add();
+System.out.println(a.value(Double.parseDouble(args[0]), Double.parseDouble(args[1])));
+$
+$ jshell --class-path commons-math3-3.6.1.jar withoutCp.jsh 3 4
+7.0
+$
+$
+$
+# the same script, with the classpath in the script itself
+$ cat withCp.jsh
+#!/usr/bin/jshell
+
+/env -class-path commons-math3-3.6.1.jar
+
+import org.apache.commons.math3.analysis.function.Add;
+
+Add a = new Add();
+System.out.println(a.value(Double.parseDouble(args[0]), Double.parseDouble(args[1])));
+$
+$ ./withCp.jsh 5 6
+11.0
+$
+```
+
 # Notes
 - so far, it's only been tested on Ubuntu
-- the path to JDK 9 jshell is hard-coded in the script as "/usr/lib/jvm/java-9-oracle/bin/jshell"
+- the path to JDK 9 jshell binary is hard-coded in the script as "/usr/lib/jvm/java-9-oracle/bin/jshell"
+- with the jshell binary, you can pass multiple arguments, each being a script that gets evaluated. JShell Shebang
+doesn't allow that behavior since it treats arguments after the script as arguments to the script
