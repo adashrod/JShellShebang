@@ -2,8 +2,8 @@
 #### JShell Shebang is a bash script to facilitate specifying jshell (Java 9 REPL) in the shebang of shell scripts
 
 JShell is a Java [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) (Read-Eval-Print-Loop) that 
-ships with the early access version of JDK 9. Like other REPLs (e.g. node in NodeJS, irb in Ruby) it can be run 
-interactively or given a script file and it will execute the code in the script.
+ships with JDK 9. Like other REPLs (e.g. node in NodeJS, irb in Ruby) it can be run interactively or given a script file
+and it will execute the code in the script.
 
 Unfortunately, both invoking ```${JAVA_HOME}/bin/jshell myScript.jsh``` and putting the path to the jshell binary in the 
 shebang line of ```myScript.jsh``` and invoking ```./myScript.jsh``` have some drawbacks:
@@ -110,6 +110,8 @@ $
 
 # Notes
 - so far, it's only been tested on Ubuntu
-- the path to JDK 9 jshell binary is hard-coded in the script as "/usr/lib/jvm/java-9-oracle/bin/jshell"
+- The script tries to find the jshell binary by looking in the same directory as ```java```. If you have JDK 9
+installed, but a different version set as the default, it will try to find the binary in any nearby directory named like
+"java-9" or "java-1.9".
 - with the jshell binary, you can pass multiple arguments, each being a script that gets evaluated. JShell Shebang
 doesn't allow that behavior since it treats arguments after the script as arguments to the script

@@ -8,11 +8,62 @@
 #    being executed by jshell. Arguments are available to the script as the variable "args", whose type is String[]
 # 3: jshell will exit after running the script rather than staying open
 
-jshellExec=/usr/lib/jvm/java-9-oracle/bin/jshell
+javaPathPattern="(.*)/java"
+javaExec=$(which java)
+if [[ -n "${javaExec}" ]]; then
+    if [[ $(which readlink) ]]; then
+        resolvedJavaExec=$(readlink -f ${javaExec} 2> /dev/null)
+        if [[ -z "${resolvedJavaExec}" ]]; then
+            resolvedJavaExec=$(readlink ${javaExec})
+        fi
+    elif [[ $(which realpath) ]]; then
+        resolvedJavaExec=$(realpath ${javaExec})
+    else
+        echo "JShellShebang: unable to use readlink or realpath to resolve java location"
+        exit 1
+    fi
+    if [[ "${resolvedJavaExec}" =~ ${javaPathPattern} ]]; then
+        jshellExec="${BASH_REMATCH[1]}/jshell"
+        # if current java is <9, check nearby dirs for 9
+        if ! [[ $(ls ${jshellExec} 2> /dev/null) ]]; then
+            javaInstDirPattern="(.*java[^/]*)/.*"
+            if [[ "${jshellExec}" =~ ${javaInstDirPattern} ]]; then
+                javaHomeParent="${BASH_REMATCH[1]}/.."
+                java9Pattern=".*java-(1.)?9.*"
+                for i in $(cd ${javaHomeParent} && ls); do
+                    if [[ "${i}" =~ ${java9Pattern} ]]; then
+                        jshellExec="${javaHomeParent}/${i}/bin/jshell"
+                        if [[ $(ls ${jshellExec} 2> /dev/null) ]]; then
+                            jshellFound=1
+                            break
+                        fi
+                        jshellExec="${javaHomeParent}/${i}/jre/bin/jshell"
+                        if [[ $(ls ${jshellExec} 2> /dev/null) ]]; then
+                            jshellFound=1
+                            break
+                        fi
+                    fi
+                done
+                if [[ -z "${jshellFound}" ]]; then
+                    echo "JShellShebang: can't find java 9 installation/can't find jshell executable in any java 9 installation dirs"
+                    exit 2
+                fi
+            else
+                echo "JShellShebang: can't find java installation dir from current java"
+                exit 3
+            fi
+        fi
+    else
+        echo "JShellShebang: can't determine java path from resolved executable"
+        exit 4
+    fi
+else
+    echo "JShellShebang: can't find java executable"
+    exit 5
+fi
 
 optionPattern="-.*"
-# note: per `jshell --help` "execution" and "add-exports" might be changed in a future release
-argsWithOperandPattern="--(class-path|module-path|add-modules|startup|feedback|execution|add-exports|J|R|C)"
+argsWithOperandPattern="--(class-path|module-path|add-modules|startup|feedback|J|R|C)"
 index=0
 jshellArgsStr=""
 # iterate over all args (jshell options, script name, script args) and find where the script name is
@@ -59,3 +110,4 @@ if [[ -n "${scriptNameIndex}" ]]; then
 else
     ${jshellExec} ${jshellArgsStr}
 fi
+
