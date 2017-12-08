@@ -34,6 +34,7 @@ You can now execute Java shell scripts as you would other types of shell scripts
 ```bash
 # clone repo and cd into it
 $ sudo cp jshell /usr/bin/jshell
+$ sudo chmod +x /usr/bin/jshell
 # create a script in a file called test.jsh
 $ cat test.jsh
 #!/usr/bin/jshell
@@ -115,3 +116,4 @@ installed, but a different version set as the default, it will try to find the b
 "java-9" or "java-1.9".
 - with the jshell binary, you can pass multiple arguments, each being a script that gets evaluated. JShell Shebang
 doesn't allow that behavior since it treats arguments after the script as arguments to the script
+- calling ```System.exit(int)``` in a script doesn't exit jshell and ```/exit``` doesn't take arguments, so there isn't a way to use exit codes in scripts
