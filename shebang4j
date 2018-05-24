@@ -19,7 +19,7 @@ if [[ -n "${javaExec}" ]]; then
     elif [[ $(which realpath) ]]; then
         resolvedJavaExec=$(realpath ${javaExec})
     else
-        echo "JShellShebang: unable to use readlink or realpath to resolve java location"
+        echo "Shebang4J: unable to use readlink or realpath to resolve java location"
         exit 1
     fi
     if [[ "${resolvedJavaExec}" =~ ${javaPathPattern} ]]; then
@@ -45,20 +45,20 @@ if [[ -n "${javaExec}" ]]; then
                     fi
                 done
                 if [[ -z "${jshellFound}" ]]; then
-                    echo "JShellShebang: can't find java 9 installation/can't find jshell executable in any java 9 installation dirs"
+                    echo "Shebang4J: can't find java 9 installation/can't find jshell executable in any java 9 installation dirs"
                     exit 2
                 fi
             else
-                echo "JShellShebang: can't find java installation dir from current java"
+                echo "Shebang4J: can't find java installation dir from current java"
                 exit 3
             fi
         fi
     else
-        echo "JShellShebang: can't determine java path from resolved executable"
+        echo "Shebang4J: can't determine java path from resolved executable"
         exit 4
     fi
 else
-    echo "JShellShebang: can't find java executable"
+    echo "Shebang4J: can't find java executable"
     exit 5
 fi
 
